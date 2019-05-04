@@ -4,14 +4,46 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Note</title>
+    <title>Notes</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <link rel="stylesheet" href="libs/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="css/custom.css">
+
+    <script src="libs/bootstrap/bootstrap.min.js"></script>
+    <script src="script.js"></script>
 </head>
 
 <body>
-    
+    <div class="container-fluid">
+        <div class="add-panel row">
+            <div class="col-sm-3">
+                <p>
+                    <label>Name</label>
+                    <input type="text" id="name" name="name" class="form-control">
+                </p>
+            </div>
+            <div class="col-sm-3">
+                <p>
+                    <label>Date</label>
+                    <input type="date" id="date" name="date" class="form-control">
+                </p>
+            </div>
+            <div class="col-sm-3">
+                <p>
+                    <label>Description</label>
+                    <input type="text" id="description" name="description" class="form-control">
+                </p>
+            </div>
+            <div class="col-sm-3 add-btn">
+                <a href="#" class="btn btn-secondary" id="addNewNote">Add</a>
+            </div>
+        </div>
+    </div>
+    <div class="view-notes bg-light">
+        <div id="notes" class="col-md-12 row"></div>
+    </div>
 </body>
 
 </html>
