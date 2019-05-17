@@ -1,13 +1,13 @@
 let database = (function () {
     const self = this;
-    let indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+    let indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
     self.open = () => {
         return new Promise(function (resolve, reject) {
             let request = indexedDB.open('notes');
             request.onupgradeneeded = function () {
                 let db = request.result;
-                let store = db.creteObjectStore('notes', { keyPath: 'id' });
+                let store = db.createObjectStore('notes', { keyPath: 'id' });
                 store.createIndex('by_id', 'id', { unique: true });
                 store.createIndex('by_name', 'name');
                 store.createIndex('by_date', 'date');
@@ -18,7 +18,7 @@ let database = (function () {
                 resolve(true);
             };
 
-            request.onerror = function () {
+            request.onerror = function (err) {
                 reject(false);
                 console.log('Erro ao criar database');
 
@@ -27,8 +27,8 @@ let database = (function () {
     };
 
     self.loadAll = () => {
-        return new Promisse(function (resolve, reject) {
-            let tx = self.db.transation('notes', 'readonly');
+        return new Promise(function (resolve, reject) {
+            let tx = self.db.transaction('notes', 'readonly');
             let store = tx.objectStore('notes');
             let request = store.getAll();
             request.onsuccess = function () {
@@ -43,21 +43,21 @@ let database = (function () {
     };
 
     self.save = (obj) => {
-        let tx = self.db.transation('notes', 'readwrite');
+        let tx = self.db.transaction('notes', 'readwrite');
         let store = tx.objectStore('notes');
-        store.put({ id: Math.random(), description: obj.description, date: obj.date });
-        tx.complete = function () {
+        var requestUpdate = store.put({ id: Math.random(), description: obj.description, date: obj.date });
+        requestUpdate.onsuccess = function () {
             resolve(true);
         };
 
-        tx.onerror = function () {
+        requestUpdate.onerror = function () {
             reject(false);
             console.log('Erro ao salvar dados');
         };
     };
 
     self.update = (obj) => {
-        let tx = self.db.transation('notes', 'readwrite');
+        let tx = self.db.transaction('notes', 'readwrite');
         let store = tx.objectStore('notes');
         let update = store.put(obj);
 
@@ -72,7 +72,7 @@ let database = (function () {
     };
 
     self.delete = (id) => {
-        let tx = self.db.transation('notes', 'readwrite');
+        let tx = self.db.transaction('notes', 'readwrite');
         let store = tx.objectStore('notes');
         store.delete(id);
 
@@ -99,7 +99,74 @@ let database = (function () {
 let view = (function () {
     let self = this;
     self.buildView = (result) => {
+        document.getElementById("addNewNote").onclick = function()
+         {
+            if (document.getElementById('addNewNote').text != "update" ) {
+                controller.save(document.getElementById("name").value, 
+                                document.getElementById("description").value,
+                                document.getElementById("date").value);
+            }
+            else {
+                let identifier = document.getElementById("addNewNote").getAttribute("identifier");
+                controller.save(parseFloat(identifier),
+                                document.getElementById("name").value, 
+                                document.getElementById("description").value,
+                                document.getElementById("date").value);
+            }
 
+            result.forEach(function(element, index) {
+                //container
+                let elementContainer = document.createElement("div");
+                elementContainer.className = "col-md-3 card card-body";
+
+                //date
+                let elementDate = document.createElement("p");
+                let nodeElementDate = document.createTextNode(element.date);
+                elementDate.appendChild(nodeElementDate);
+                
+                //name
+                let elementName  = document.createElement("p");
+                let nodeElementName = document.createTextNode(element.name);
+                elementName.appendChild(nodeElementName);
+                
+                //description
+                let elementDescription  = document.createElement("p");
+                let nodeElementDesc = document.createTextNode(element.description);
+                elementDescription.appendChild(nodeElementDesc);
+
+                //delete
+                let deleteBtn = document.createElement("button");
+                deleteBtn.className = "btn btn-danger";
+                deleteBtn.setAttribute("id", index);
+                let nodeElementDelete = document.createTextNode("Delete");
+                deleteBtn.appendChild(nodeElementDelete);
+                deleteBtn.onclick = function () {
+                    controller.delete(element.id);
+                };
+
+                //editar
+                let editBtn = document.createElement("button");
+                editBtn.className = "btn btn-link";
+                editBtn.setAttribute("id", "edit_" + index);
+                editBtn.onclick = function () {
+                    document.getElementById("name").value = element.name;
+                    document.getElementById("description").value = element.description;
+                    document.getElementById("date").value = element.date;
+                    document.getElementById("addNewNote").setAttribute("identifier", element.identifier);
+                };
+                let nodeElementEdit = document.createTextNode("Edit");
+                editBtn.appendChild(nodeElementEdit);
+
+
+                elementContainer.appendChild(elementDate);
+                elementContainer.appendChild(elementName);
+                elementContainer.appendChild(elementDescription);
+                elementContainer.appendChild(deleteBtn);
+                elementContainer.appendChild(editBtn);
+
+                document.getElementById("notes").appendChild(elementContainer);
+            });
+         };
     };
 
     return {
